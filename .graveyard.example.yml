@@ -1,0 +1,56 @@
+# Graveyard — Configuration Example
+# Copy this file to .graveyard.yml in your project root, then edit the values.
+# Run `graveyard init` to auto-generate one tailored to your project.
+
+project: my-app
+environment: production
+
+# Checks configuration
+checks:
+  tests:
+    enabled: true
+    # Minimum pass rate (percentage). Fail if below this.
+    min_pass_rate: 95
+    # Minimum coverage percentage. Warn if below this.
+    min_coverage: 80
+
+  security:
+    enabled: true
+    # Block deploys when a vulnerability of this severity is found.
+    # Options: CRITICAL, HIGH, MEDIUM, LOW
+    block_on: CRITICAL
+    # Warn (don't block) on this severity.
+    warn_on: HIGH
+    # Max number of HIGH vulns before blocking (0 = any HIGH blocks).
+    max_high: 5
+
+  k8s:
+    enabled: true
+    namespace: default
+    require_limits: true
+    require_probes: true
+    min_replicas: 2
+
+  dependencies:
+    enabled: true
+    # External services that must be healthy before deploy.
+    urls:
+      - name: Stripe API
+        url: https://api.stripe.com
+        timeout: 5
+      - name: GitHub API
+        url: https://api.github.com
+        timeout: 5
+    # Max response time (seconds) before warning.
+    warn_latency: 3
+
+  compliance:
+    enabled: true
+
+  cost:
+    enabled: true
+    # Warn if estimated monthly cost increase exceeds this (USD).
+    warn_threshold: 50
+    # Cloud provider for cost estimation:
+    # aws | gcp | azure | hetzner | digitalocean | linode | blended
+    provider: aws

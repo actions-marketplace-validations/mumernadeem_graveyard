@@ -1,0 +1,36 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: good-app
+  namespace: staging
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: good-app
+  template:
+    metadata:
+      labels:
+        app: good-app
+    spec:
+      containers:
+      - name: web
+        image: my-app:v1.2.3
+        imagePullPolicy: IfNotPresent
+        resources:
+          requests:
+            memory: "64Mi"
+            cpu: "250m"
+          limits:
+            memory: "128Mi"
+            cpu: "500m"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 3
+          periodSeconds: 3
+        readinessProbe:
+          httpGet:
+            path: /ready
+            port: 8080

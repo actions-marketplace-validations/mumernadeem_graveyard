@@ -1,0 +1,51 @@
+# ─── Graveyard GitLab CI/CD Template ─────────────────────────────────
+# Drop into your .gitlab-ci.yml:
+#
+#   include:
+#     - remote: 'https://raw.githubusercontent.com/mumernadeem/graveyard/main/gitlab-ci-template.yml'
+#
+# Then add the `graveyard_deploy_check` job to any stage.
+# ─────────────────────────────────────────────────────────────────────
+
+spec:
+  inputs:
+    config:
+      default: ".graveyard.yml"
+      description: "Path to Graveyard configuration file"
+    tests:
+      default: ""
+      description: "Path to test results directory (JUnit XML)"
+    image:
+      default: ""
+      description: "Container image to scan"
+    k8s_dir:
+      default: ""
+      description: "Path to K8s manifest YAML files"
+    graveyard_ref:
+      default: "main"
+      description: "Branch/tag/commit of Graveyard to use"
+---
+
+graveyard_deploy_check:
+  stage: test
+  image: python:3.12-slim
+  before_script:
+    # Pull just the Graveyard CLI script (zero pip install needed).
+    - apt-get update -qq && apt-get install -y -qq curl
+    - curl -sSL https://raw.githubusercontent.com/mumernadeem/graveyard/$[[ inputs.graveyard_ref ]]/src/cli/graveyard.py -o /tmp/graveyard.py
+    - chmod +x /tmp/graveyard.py
+  script:
+    - |
+      ARGS="--config $[[ inputs.config ]]"
+      [ -n "$[[ inputs.tests ]]" ]   && ARGS="$ARGS --tests $[[ inputs.tests ]]"
+      [ -n "$[[ inputs.image ]]" ]   && ARGS="$ARGS --image $[[ inputs.image ]]"
+      [ -n "$[[ inputs.k8s_dir ]]" ] && ARGS="$ARGS --k8s-dir $[[ inputs.k8s_dir ]]"
+      python3 /tmp/graveyard.py check $ARGS
+  artifacts:
+    when: always
+    paths:
+      - deploy-records/
+    expire_in: 90 days
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"

@@ -1,0 +1,9 @@
+# Graveyard CLI — Production Dependencies
+# None! Graveyard runs on Python stdlib only.
+# 
+# Optional (auto-detected at runtime):
+#   pyyaml    — Preferred YAML parser; built-in parser used as fallback
+#   trivy     — Required for container security scanning (system binary, not pip)
+#
+# Development dependencies:
+#   pytest    — For running the test suite

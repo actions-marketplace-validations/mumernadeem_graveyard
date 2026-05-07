@@ -1,0 +1,50 @@
+# Graveyard Config — Demo
+project: graveyard-demo
+environment: staging
+
+checks:
+  tests:
+    enabled: true
+    min_pass_rate: 90
+    min_coverage: 75
+
+  security:
+    enabled: true
+    block_on: CRITICAL
+    warn_on: HIGH
+    max_high: 5
+
+  k8s:
+    enabled: true
+    namespace: staging
+    require_limits: true
+    require_probes: true
+    min_replicas: 2
+
+  dependencies:
+    enabled: true
+    urls:
+      - name: Stripe API
+        url: https://api.stripe.com
+        timeout: 5
+      - name: GitHub API
+        url: https://api.github.com
+        timeout: 5
+    warn_latency: 3
+
+  cost:
+    enabled: true
+    warn_threshold: 100
+    # ─── Option A: Use a provider preset ───
+    # provider: aws       # aws | gcp | azure | hetzner | digitalocean | linode
+    # ─── Option B: Tell us your node cost ──
+    # node_monthly: 150   # What you pay per node/month
+    # node_vcpus: 4       # vCPUs per node
+    # node_ram_gb: 16     # RAM per node
+    # currency: USD
+    # ─── Option C: Exact per-resource rates ─
+    # vcpu_hour: 0.042
+    # gb_ram_hour: 0.006
+    # ─── If nothing set, uses blended average ─
+    provider: hetzner
+

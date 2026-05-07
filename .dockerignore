@@ -1,0 +1,13 @@
+__pycache__/
+*.pyc
+*.pyo
+venv/
+.git/
+.gitignore
+wiki/
+raw/
+unique_ideas_recommendation.md
+CLAUDE.md
+TARGETS.md
+*.md.resolved
+.gemini/

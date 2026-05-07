@@ -1,0 +1,51 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Test / Lint caches
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+.tox/
+
+# IDEs / OS noise
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# Virtual envs
+venv/
+env/
+.venv/
+
+# Build artefacts
+build/
+dist/
+*.egg-info/
+
+# Local override config (let users keep secrets out)
+.graveyard.local.yml
+
+# Emergent agent workspace files (not part of the public OSS project)
+.emergent/
+
+# Demo / Test-generated DDRs (keep curated examples in deploy-records/.gitkeep)
+deploy-records/*.md
+!deploy-records/.gitkeep
+
+# Environment and credential files
+.env
+.env.*
+*.env
+credentials.json
+*.pem
+*.key
+.credentials

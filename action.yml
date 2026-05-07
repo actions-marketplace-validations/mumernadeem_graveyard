@@ -1,0 +1,84 @@
+name: "Graveyard Deploy Check"
+description: "Run incident-trained deploy gates: postmortems become enforceable rules. Block bad deploys before they ship."
+author: "mumernadeem"
+
+branding:
+  icon: 'shield'
+  color: 'gray-dark'
+
+inputs:
+  config:
+    description: "Path to .graveyard.yml configuration file"
+    required: false
+    default: ".graveyard.yml"
+  tests:
+    description: "Path to test results directory containing JUnit XML files"
+    required: false
+    default: ""
+  image:
+    description: "Container image name to scan with Trivy (e.g. my-app:v1.2.3)"
+    required: false
+    default: ""
+  k8s-dir:
+    description: "Path to K8s manifest YAML files for validation"
+    required: false
+    default: ""
+  namespace:
+    description: "Kubernetes namespace override"
+    required: false
+    default: ""
+  output:
+    description: "Output format: text or json"
+    required: false
+    default: "text"
+
+outputs:
+  decision:
+    description: "Final deploy decision: GO, CAUTION, or BLOCK"
+    value: ${{ steps.graveyard.outputs.decision }}
+
+runs:
+  using: "composite"
+  steps:
+    - name: Run Graveyard Check
+      id: graveyard
+      shell: bash
+      run: |
+        # The graveyard.py script lives in this action's repo (github.action_path).
+        # When users do `uses: mumernadeem/graveyard@v1`, GitHub auto-checks out
+        # this repo to ${GITHUB_ACTION_PATH}. We run the script from there
+        # against the user's working directory.
+
+        SCRIPT="${GITHUB_ACTION_PATH}/src/cli/graveyard.py"
+        if [ ! -f "$SCRIPT" ]; then
+          echo "::error::Graveyard CLI not found at $SCRIPT"
+          exit 2
+        fi
+
+        ARGS=()
+        [ -n "${{ inputs.config }}" ]    && ARGS+=(--config "${{ inputs.config }}")
+        [ -n "${{ inputs.tests }}" ]     && ARGS+=(--tests "${{ inputs.tests }}")
+        [ -n "${{ inputs.image }}" ]     && ARGS+=(--image "${{ inputs.image }}")
+        [ -n "${{ inputs.k8s-dir }}" ]   && ARGS+=(--k8s-dir "${{ inputs.k8s-dir }}")
+        [ -n "${{ inputs.namespace }}" ] && ARGS+=(--namespace "${{ inputs.namespace }}")
+        [ -n "${{ inputs.output }}" ]    && ARGS+=(--output "${{ inputs.output }}")
+
+        echo "▶ python3 $SCRIPT check ${ARGS[*]}"
+        python3 "$SCRIPT" check "${ARGS[@]}"
+        EXIT_CODE=$?
+
+        if [ $EXIT_CODE -eq 0 ]; then
+          echo "decision=GO" >> "$GITHUB_OUTPUT"
+        else
+          echo "decision=BLOCK" >> "$GITHUB_OUTPUT"
+        fi
+        exit $EXIT_CODE
+
+    - name: Upload Deploy Decision Records
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: deploy-records
+        path: deploy-records/
+        if-no-files-found: ignore
+        retention-days: 90
